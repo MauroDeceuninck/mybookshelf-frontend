@@ -4,10 +4,15 @@ import { API_URL, USER_ID } from "./config";
 function App() {
   const [books, setBooks] = useState([]);
   const [editingId, setEditingId] = useState(null); // null = not editing
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [genreFilter, setGenreFilter] = useState("All");
+  const [useCustomGenre, setUseCustomGenre] = useState(false);
+
   const [form, setForm] = useState({
     title: "",
     author: "",
     genre: "",
+    customGenre: "",
     status: "Want to read",
     notes: "",
   });
@@ -28,7 +33,12 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const bookData = { ...form, userId: USER_ID };
+
+    const bookData = {
+      ...form,
+      genre: useCustomGenre ? form.customGenre : form.genre,
+      userId: USER_ID,
+    };
 
     if (editingId) {
       // Edit existing book
@@ -51,9 +61,11 @@ function App() {
       title: "",
       author: "",
       genre: "",
+      customGenre: "",
       status: "Want to read",
       notes: "",
     });
+    setUseCustomGenre(false);
     fetchBooks();
   };
 
@@ -67,9 +79,12 @@ function App() {
       title: book.title,
       author: book.author,
       genre: book.genre,
+      customGenre: "",
       status: book.status,
       notes: book.notes,
     });
+
+    setUseCustomGenre(false);
     setEditingId(book._id);
   };
 
@@ -91,45 +106,105 @@ function App() {
           placeholder="Author"
           required
         />
-        <input
+
+        <label>Genre:</label>
+        <select
           id="genre"
-          value={form.genre}
-          onChange={handleChange}
-          placeholder="Genre"
-        />
+          value={useCustomGenre ? "Other" : form.genre}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === "Other") {
+              setUseCustomGenre(true);
+              setForm({ ...form, genre: "", customGenre: "" });
+            } else {
+              setUseCustomGenre(false);
+              setForm({ ...form, genre: value });
+            }
+          }}
+        >
+          <option value="">-- Select Genre --</option>
+          <option value="Fantasy">Fantasy</option>
+          <option value="Sci-Fi">Sci-Fi</option>
+          <option value="Dystopian">Dystopian</option>
+          <option value="Non-fiction">Non-fiction</option>
+          <option value="Romance">Romance</option>
+          <option value="Other">Other</option>
+        </select>
+
+        {useCustomGenre && (
+          <input
+            type="text"
+            placeholder="Enter custom genre"
+            value={form.customGenre}
+            onChange={(e) => setForm({ ...form, customGenre: e.target.value })}
+          />
+        )}
+
         <select id="status" value={form.status} onChange={handleChange}>
           <option>Want to read</option>
           <option>Reading</option>
           <option>Read</option>
         </select>
+
         <textarea
           id="notes"
           value={form.notes}
           onChange={handleChange}
           placeholder="Notes"
         />
-        <button type="submit">Add Book</button>
+
+        <button type="submit">{editingId ? "Update" : "Add"} Book</button>
       </form>
 
+      <label>Filter by Status: </label>
+      <select
+        value={filterStatus}
+        onChange={(e) => setFilterStatus(e.target.value)}
+      >
+        <option value="All">All</option>
+        <option value="Want to read">Want to read</option>
+        <option value="Reading">Reading</option>
+        <option value="Read">Read</option>
+      </select>
+
+      <label>Filter by Genre: </label>
+      <select
+        value={genreFilter}
+        onChange={(e) => setGenreFilter(e.target.value)}
+      >
+        <option value="All">All</option>
+        <option value="Fantasy">Fantasy</option>
+        <option value="Sci-Fi">Sci-Fi</option>
+        <option value="Dystopian">Dystopian</option>
+        <option value="Non-fiction">Non-fiction</option>
+        <option value="Romance">Romance</option>
+      </select>
+
       <h2>Your Books</h2>
-      {books.map((book) => (
-        <div
-          key={book._id}
-          style={{
-            border: "1px solid #ccc",
-            padding: "10px",
-            marginBottom: "10px",
-          }}
-        >
-          <strong>{book.title}</strong> ({book.status})<br />
-          {book.author} - {book.genre}
-          <br />
-          <em>{book.notes}</em>
-          <br />
-          <button onClick={() => deleteBook(book._id)}>Delete</button>
-          <button onClick={() => startEdit(book)}>Edit</button>
-        </div>
-      ))}
+      {books
+        .filter(
+          (book) =>
+            (filterStatus === "All" || book.status === filterStatus) &&
+            (genreFilter === "All" || book.genre === genreFilter)
+        )
+        .map((book) => (
+          <div
+            key={book._id}
+            style={{
+              border: "1px solid #ccc",
+              padding: "10px",
+              marginBottom: "10px",
+            }}
+          >
+            <strong>{book.title}</strong> ({book.status})<br />
+            {book.author} - {book.genre}
+            <br />
+            <em>{book.notes}</em>
+            <br />
+            <button onClick={() => deleteBook(book._id)}>Delete</button>
+            <button onClick={() => startEdit(book)}>Edit</button>
+          </div>
+        ))}
     </div>
   );
 }
