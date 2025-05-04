@@ -22,6 +22,7 @@ function App() {
   const [auth, setAuth] = useState({
     token: localStorage.getItem("token") || "",
     userId: localStorage.getItem("userId") || "",
+    username: localStorage.getItem("username") || "",
   });
 
   const isLoggedIn = !!auth.token;
@@ -147,16 +148,21 @@ function App() {
     if (res.ok && data.token) {
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
-      setAuth({ token: data.token, userId: data.userId });
+      localStorage.setItem("username", data.username);
+
+      setAuth({
+        token: data.token,
+        userId: data.userId,
+        username: data.username,
+      });
+
       fetchBooks(data.token); // refresh book list
-    } else {
-      alert(data.error || "Login/Register failed");
     }
   };
 
   const handleLogout = () => {
     localStorage.clear();
-    setAuth({ token: "", userId: "" });
+    setAuth({ token: "", userId: "", username: "" });
     setBooks([]);
   };
 
@@ -192,7 +198,10 @@ function App() {
         </div>
       ) : (
         <div className="auth-box">
-          <p>Logged in as user: {auth.userId}</p>
+          <p>
+            Logged in as: <strong>{auth.username}</strong>
+          </p>
+
           <button onClick={handleLogout}>Logout</button>
         </div>
       )}
