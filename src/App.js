@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { API_URL, USER_ID } from "./config";
+import "./App.css";
 
 function App() {
   const [books, setBooks] = useState([]);
@@ -160,9 +161,9 @@ function App() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="container">
       {!isLoggedIn ? (
-        <div style={{ marginBottom: "20px" }}>
+        <div className="auth-box">
           <h2>Login / Register</h2>
           <input type="text" placeholder="Username" id="username" />
           <input type="password" placeholder="Password" id="password" />
@@ -190,11 +191,12 @@ function App() {
           </button>
         </div>
       ) : (
-        <div style={{ marginBottom: "20px" }}>
+        <div className="auth-box">
           <p>Logged in as user: {auth.userId}</p>
           <button onClick={handleLogout}>Logout</button>
         </div>
       )}
+
       {isLoggedIn && (
         <>
           <h1>MyBookshelf</h1>
@@ -265,29 +267,31 @@ function App() {
             <button type="submit">{editingId ? "Update" : "Add"} Book</button>
           </form>
 
-          <label>Filter by Status: </label>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="All">All</option>
-            <option value="Want to read">Want to read</option>
-            <option value="Reading">Reading</option>
-            <option value="Read">Read</option>
-          </select>
+          <div className="filters">
+            <label>Filter by Status:</label>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <option value="All">All</option>
+              <option value="Want to read">Want to read</option>
+              <option value="Reading">Reading</option>
+              <option value="Read">Read</option>
+            </select>
 
-          <label>Filter by Genre: </label>
-          <select
-            value={genreFilter}
-            onChange={(e) => setGenreFilter(e.target.value)}
-          >
-            <option value="All">All</option>
-            {availableGenres.map((genre) => (
-              <option key={genre} value={genre}>
-                {genre}
-              </option>
-            ))}
-          </select>
+            <label>Filter by Genre:</label>
+            <select
+              value={genreFilter}
+              onChange={(e) => setGenreFilter(e.target.value)}
+            >
+              <option value="All">All</option>
+              {availableGenres.map((genre) => (
+                <option key={genre} value={genre}>
+                  {genre}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <h2>Your Books</h2>
           {books
@@ -297,14 +301,7 @@ function App() {
                 (genreFilter === "All" || book.genre === genreFilter)
             )
             .map((book) => (
-              <div
-                key={book._id}
-                style={{
-                  border: "1px solid #ccc",
-                  padding: "10px",
-                  marginBottom: "10px",
-                }}
-              >
+              <div className="book-card" key={book._id}>
                 <strong>{book.title}</strong> ({book.status})<br />
                 {book.author} - {book.genre}
                 <br />
