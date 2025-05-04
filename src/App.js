@@ -7,6 +7,7 @@ function App() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [genreFilter, setGenreFilter] = useState("All");
   const [useCustomGenre, setUseCustomGenre] = useState(false);
+  const [availableGenres, setAvailableGenres] = useState([]);
 
   const [form, setForm] = useState({
     title: "",
@@ -25,6 +26,10 @@ function App() {
     const res = await fetch(`${API_URL}?userId=${USER_ID}`);
     const data = await res.json();
     setBooks(data);
+
+    // Extract unique genres
+    const genres = [...new Set(data.map((book) => book.genre).filter(Boolean))];
+    setAvailableGenres(genres);
   };
 
   const handleChange = (e) => {
@@ -173,11 +178,11 @@ function App() {
         onChange={(e) => setGenreFilter(e.target.value)}
       >
         <option value="All">All</option>
-        <option value="Fantasy">Fantasy</option>
-        <option value="Sci-Fi">Sci-Fi</option>
-        <option value="Dystopian">Dystopian</option>
-        <option value="Non-fiction">Non-fiction</option>
-        <option value="Romance">Romance</option>
+        {availableGenres.map((genre) => (
+          <option key={genre} value={genre}>
+            {genre}
+          </option>
+        ))}
       </select>
 
       <h2>Your Books</h2>
