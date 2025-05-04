@@ -9,6 +9,7 @@ function App() {
   const [genreFilter, setGenreFilter] = useState("All");
   const [useCustomGenre, setUseCustomGenre] = useState(false);
   const [availableGenres, setAvailableGenres] = useState([]);
+  const [authError, setAuthError] = useState("");
 
   const [form, setForm] = useState({
     title: "",
@@ -137,26 +138,35 @@ function App() {
 
   const handleLogin = async (username, password, isRegister = false) => {
     const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
-    const res = await fetch(`http://localhost:3000${endpoint}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
 
-    const data = await res.json();
+    setAuthError(""); // clear old errors
 
-    if (res.ok && data.token) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userId", data.userId);
-      localStorage.setItem("username", data.username);
-
-      setAuth({
-        token: data.token,
-        userId: data.userId,
-        username: data.username,
+    try {
+      const res = await fetch(`http://localhost:3000${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
       });
 
-      fetchBooks(data.token); // refresh book list
+      const data = await res.json();
+
+      if (res.ok && (data.token || isRegister)) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("userId", data.userId);
+        localStorage.setItem("username", data.username);
+
+        setAuth({
+          token: data.token,
+          userId: data.userId,
+          username: data.username,
+        });
+
+        fetchBooks(data.token);
+      } else {
+        setAuthError(data.error || "Login/Register failed");
+      }
+    } catch (err) {
+      setAuthError("Network error. Please try again.");
     }
   };
 
@@ -195,6 +205,9 @@ function App() {
           >
             Register
           </button>
+          {authError && (
+            <div style={{ color: "red", marginTop: "10px" }}>{authError}</div>
+          )}
         </div>
       ) : (
         <div className="auth-box">
