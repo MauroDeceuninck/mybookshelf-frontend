@@ -67,8 +67,11 @@ function App() {
     const bookData = {
       ...form,
       genre: useCustomGenre ? form.customGenre : form.genre,
-      userId: USER_ID,
     };
+
+    if (!editingId) {
+      bookData.userId = auth.userId;
+    }
 
     if (editingId) {
       // Edit existing book
