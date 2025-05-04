@@ -3,6 +3,7 @@ import { API_URL, USER_ID } from "./config";
 
 function App() {
   const [books, setBooks] = useState([]);
+  const [editingId, setEditingId] = useState(null); // null = not editing
   const [form, setForm] = useState({
     title: "",
     author: "",
@@ -27,11 +28,25 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, userId: USER_ID }),
-    });
+    const bookData = { ...form, userId: USER_ID };
+
+    if (editingId) {
+      // Edit existing book
+      await fetch(`${API_URL}/${editingId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookData),
+      });
+      setEditingId(null);
+    } else {
+      // Add new book
+      await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookData),
+      });
+    }
+
     setForm({
       title: "",
       author: "",
@@ -45,6 +60,17 @@ function App() {
   const deleteBook = async (id) => {
     await fetch(`${API_URL}/${id}`, { method: "DELETE" });
     fetchBooks();
+  };
+
+  const startEdit = (book) => {
+    setForm({
+      title: book.title,
+      author: book.author,
+      genre: book.genre,
+      status: book.status,
+      notes: book.notes,
+    });
+    setEditingId(book._id);
   };
 
   return (
@@ -101,6 +127,7 @@ function App() {
           <em>{book.notes}</em>
           <br />
           <button onClick={() => deleteBook(book._id)}>Delete</button>
+          <button onClick={() => startEdit(book)}>Edit</button>
         </div>
       ))}
     </div>
