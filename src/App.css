@@ -46,7 +46,6 @@ body {
 }
 
 .container {
-  max-width: 700px;
   margin: auto;
   padding: 20px;
   background-color: #fff;
@@ -150,4 +149,26 @@ button:hover {
 
 .auth-box input {
   margin-bottom: 10px;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (min-width: 900px) {
+  .main-content {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .form-section {
+    flex: 1;
+    max-width: 45%;
+  }
+
+  .book-section {
+    flex: 2;
+  }
 }
