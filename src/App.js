@@ -29,8 +29,8 @@ function App() {
   const isLoggedIn = !!auth.token;
 
   useEffect(() => {
-    fetchBooks();
-  });
+    if (auth.token) fetchBooks();
+  }, [auth.token]);
 
   const fetchBooks = async (customToken) => {
     const tokenToUse = customToken || auth.token;
