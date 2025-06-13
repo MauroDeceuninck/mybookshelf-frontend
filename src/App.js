@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { API_URL, USER_ID } from "./config";
+import { config, loadConfig } from "./config";
 import "./App.css";
 
 function App() {
   const [books, setBooks] = useState([]);
-  const [editingId, setEditingId] = useState(null); // null = not editing
+  const [editingId, setEditingId] = useState(null);
   const [filterStatus, setFilterStatus] = useState("All");
   const [genreFilter, setGenreFilter] = useState("All");
   const [useCustomGenre, setUseCustomGenre] = useState(false);
@@ -29,14 +29,18 @@ function App() {
   const isLoggedIn = !!auth.token;
 
   useEffect(() => {
-    if (auth.token) fetchBooks();
+    async function initialize() {
+      await loadConfig(); // load runtime config first
+      if (auth.token) fetchBooks(); // then fetch books if logged in
+    }
+    initialize();
   }, [auth.token]);
 
   const fetchBooks = async (customToken) => {
     const tokenToUse = customToken || auth.token;
 
     try {
-      const res = await fetch(`${API_URL}`, {
+      const res = await fetch(`${config.API_URL}`, {
         headers: {
           Authorization: `Bearer ${tokenToUse}`,
         },
@@ -78,7 +82,7 @@ function App() {
 
     if (editingId) {
       // Edit existing book
-      await fetch(`${API_URL}/${editingId}`, {
+      await fetch(`${config.API_URL}/${editingId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -89,7 +93,7 @@ function App() {
       setEditingId(null);
     } else {
       // Add new book
-      await fetch(API_URL, {
+      await fetch(config.API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +116,7 @@ function App() {
   };
 
   const deleteBook = async (id) => {
-    await fetch(`${API_URL}/${id}`, {
+    await fetch(`${config.API_URL}/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -137,12 +141,19 @@ function App() {
   };
 
   const handleLogin = async (username, password, isRegister = false) => {
-    const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
+    const endpoint = isRegister ? "/register" : "/login";
+    console.log(
+      "Attempting to %s with username: %s and endpoint %s %s",
+      isRegister ? "register" : "login",
+      username,
+      config.AUTH_URL,
+      endpoint
+    );
 
-    setAuthError(""); // clear old errors
+    setAuthError("");
 
     try {
-      const res = await fetch(`http://localhost:3000${endpoint}`, {
+      const res = await fetch(`${config.AUTH_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -215,7 +226,6 @@ function App() {
           <p>
             Logged in as: <strong>{auth.username}</strong>
           </p>
-
           <button onClick={handleLogout}>Logout</button>
         </div>
       )}
@@ -240,7 +250,6 @@ function App() {
                   placeholder="Author"
                   required
                 />
-
                 <label>Genre:</label>
                 <select
                   id="genre"
