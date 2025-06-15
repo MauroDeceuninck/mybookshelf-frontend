@@ -1,70 +1,119 @@
-# Getting Started with Create React App
+# MyBookshelf Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is the React-based frontend for the MyBookshelf application. It provides a single-page interface for users to log in and manage their personal book collection.
 
-## Available Scripts
+## Prerequisites
 
-In the project directory, you can run:
+- Node.js (v14+)
+- npm
+- Docker & Docker Compose (optional)
 
-### `npm start`
+## Installation
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```bash
+git clone https://github.com/MauroDeceuninck/mybookshelf-frontend.git
+cd mybookshelf-frontend
+npm install
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Configuration
 
-### `npm test`
+Create a `public/runtime-config-dev/config.json` file for development that points to the backend API:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```json
+{
+  "API_URL": "http://localhost:3000",
+}
+```
 
-### `npm run build`
+> In production (Docker), this file is mounted into the container at `/usr/share/nginx/html/runtime-config/config.json`.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Create a `.env` file in the root:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```env
+PORT=3001
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Running Locally
 
-### `npm run eject`
+Make sure the backend is running on port `3000`, then:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+npm start
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Access the frontend at: [http://localhost:3001](http://localhost:3001)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Docker Deployment
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Build and run the image:
 
-## Learn More
+```bash
+# Build the frontend image
+docker build -t mybookshelf-frontend ./mybookshelf-frontend
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+# Run the frontend container with volume mount for config.json
+docker run -d \
+  --name mybookshelf-frontend \
+  -p 3001:80 \
+  -v $(pwd)/frontend-config/config.json:/usr/share/nginx/html/runtime-config/config.json \
+  mybookshelf-frontend
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Or use Docker Compose:
 
-### Code Splitting
+```yaml
+version: "3"
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+services:
+  backend:
+    build:
+        context: ./mybookshelf-backend
+    # image: maurodeceuninck/mybookshelf-backend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: "mongodb+srv://<username>:<password>@cluster.mongodb.net/mybookshelf?retryWrites=true&w=majority&appName=Cluster0"
+      JWT_SECRET: "your-secret-key"
 
-### Analyzing the Bundle Size
+  frontend:
+    build:
+        context: ./mybookshelf-frontend
+    # image: maurodeceuninck/mybookshelf-frontend:latest
+    ports:
+      - "3001:80"
+    volumes:
+      - ./frontend-config/config.json:/usr/share/nginx/html/runtime-config/config.json
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+    depends_on:
+      - backend
+```
 
-### Making a Progressive Web App
+or use the publicly available images: 
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```bash
+maurodeceuninck/mybookshelf-frontend:latest
+maurodeceuninck/mybookshelf-backend:latest
+```
 
-### Advanced Configuration
+Make sure to create the `config.json` file (adjust the URL if needed):
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```json
+{
+  "API_URL": "http://localhost:3000"
+}
+```
 
-### Deployment
+Or my domain if the publicly available images are used:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```json
+{
+  "API_URL": "https://mybookshelf.mauroserver.com"
+}
+```
 
-### `npm run build` fails to minify
+Then start with:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+docker compose up --build
+```
