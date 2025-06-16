@@ -10,6 +10,8 @@ function App() {
   const [useCustomGenre, setUseCustomGenre] = useState(false);
   const [availableGenres, setAvailableGenres] = useState([]);
   const [authError, setAuthError] = useState("");
+  const [loginUsername, setLoginUsername] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
 
   const [form, setForm] = useState({
     title: "",
@@ -193,27 +195,39 @@ function App() {
       {!isLoggedIn ? (
         <div className="auth-box">
           <h2>Login / Register</h2>
-          <input type="text" placeholder="Username" id="username" />
-          <input type="password" placeholder="Password" id="password" />
+          <input
+            type="text"
+            placeholder="Username"
+            value={loginUsername}
+            onChange={(e) => setLoginUsername(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+            required
+          />
           <button
-            onClick={() =>
-              handleLogin(
-                document.getElementById("username").value,
-                document.getElementById("password").value,
-                false
-              )
-            }
+            onClick={() => {
+              if (!loginUsername || !loginPassword) {
+                setAuthError("Username and password are required.");
+                return;
+              }
+              handleLogin(loginUsername, loginPassword, false);
+            }}
           >
             Login
           </button>
           <button
-            onClick={() =>
-              handleLogin(
-                document.getElementById("username").value,
-                document.getElementById("password").value,
-                true
-              )
-            }
+            onClick={() => {
+              if (!loginUsername || !loginPassword) {
+                setAuthError("Username and password are required.");
+                return;
+              }
+              handleLogin(loginUsername, loginPassword, true);
+            }}
           >
             Register
           </button>
